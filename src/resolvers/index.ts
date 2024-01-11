@@ -1,25 +1,36 @@
 import { GraphQLError } from "graphql";
+import { fetchAdminApi } from "../helpers";
 
-const fetchAdminApi = async (query, tenantId, Authorization, variables?) => {
-  const result = await fetch("https://services.dev.53.skillstery.com/graphql", {
-    method: "POST",
+interface AdminApiResponse {
+  message?: string;
+  data?: {
+    students: {
+      listProductTiersCurrent: {
+        data: Array<{
+          productTier: {
+            product: {
+              id: string;
+              name: string;
+            };
+          };
+        }>;
+      };
+    };
+  };
+}
+
+interface GraphQLContext {
+  request: {
     headers: {
-      "Content-Type": "application/json",
-      "x-tenant": tenantId,
-      Authorization,
-    },
-    body: JSON.stringify({
-      query,
-      variables,
-    }),
-  });
-  return await result.json();
-};
+      get: (name: string) => string | null;
+    };
+  };
+}
 
 export default {
   Query: {
-    products: async (_, _, context) => {
-      const a = await fetchAdminApi(
+    products: async (_: unknown, args: unknown, context: GraphQLContext) => {
+      const apiResponse: AdminApiResponse = await fetchAdminApi(
         /* GraphQL */ `
           query GetProductByStudentId {
             students {
@@ -36,25 +47,32 @@ export default {
             }
           }
         `,
-        context.request.headers.get("x-tenant"),
-        context.request.headers.get("Authorization")
+        context.request.headers.get("x-tenant") ?? "",
+        context.request.headers.get("Authorization") ?? ""
       );
-      if (a.message === "jwt expired") {
-        throw new GraphQLError("jwt expired", {
+
+      console.log(JSON.stringify(apiResponse, null, 2));
+
+      if (apiResponse.message === "jwt expired") {
+        throw new GraphQLError("JWT expired", {
           extensions: {
             code: "JWT_EXPIRED",
           },
         });
       }
-      if (a.message === "You don't have permission") {
-        throw new GraphQLError("You don't have permission", {
+
+      if (apiResponse.message === "You don't have permission") {
+        throw new GraphQLError("Access denied: You don't have permission", {
           extensions: {
             code: "UNAUTHORIZED",
           },
         });
       }
-      return a.data.students.listProductTiersCurrent.data.map(
-        (item) => item.productTier.product
+
+      return (
+        apiResponse.data?.students.listProductTiersCurrent.data.map(
+          (tier) => tier.productTier.product
+        ) || []
       );
     },
   },
