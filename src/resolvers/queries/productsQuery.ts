@@ -43,6 +43,7 @@ export const productsQuery = async (
       }
     `,
     context.request.headers.get("x-tenant") ?? "",
+    context.request.headers.get("x-studentId") ?? ""
   );
 
   if (apiResponse.message === "jwt expired") {
