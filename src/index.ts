@@ -8,6 +8,20 @@ const schema = createSchema({
 
 const yoga = createYoga({
   schema,
+  graphiql: {
+    defaultQuery: `
+      query {
+        products {
+          id
+          name
+        }
+      }
+    `,
+    headers: `{
+      "x-tenant": "<tenant id>",
+      "x-studentId": "<idToken from cognito login response>"
+    }`,
+  },
 });
 
 self.addEventListener("fetch", yoga);
