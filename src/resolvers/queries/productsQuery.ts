@@ -1,8 +1,9 @@
 import { GraphQLError } from "graphql";
 import { fetchAdminApi } from "../../helpers";
 import { YogaInitialContext } from "graphql-yoga";
+import { Context } from "../../typings";
 
-interface AdminApiResponse {
+interface GetProductByStudentIdResponse {
   message?: string;
   data?: {
     students: {
@@ -22,29 +23,25 @@ interface AdminApiResponse {
 
 export const productsQuery = async (
   _: unknown,
-  args: unknown,
-  context: YogaInitialContext
+  __: unknown,
+  context: Context
 ) => {
-  const apiResponse: AdminApiResponse = await fetchAdminApi(
-    /* GraphQL */ `
-      query GetProductByStudentId {
-        students {
-          listProductTiersCurrent {
-            data {
-              productTier {
-                product {
-                  id
-                  name
-                }
+  const apiResponse = (await context.fetchAdminApi(/* GraphQL */ `
+    query GetProductByStudentId {
+      students {
+        listProductTiersCurrent {
+          data {
+            productTier {
+              product {
+                id
+                name
               }
             }
           }
         }
       }
-    `,
-    context.request.headers.get("x-tenant") ?? "",
-    context.request.headers.get("x-studentId") ?? ""
-  );
+    }
+  `)) as GetProductByStudentIdResponse;
 
   if (apiResponse.message === "jwt expired") {
     throw new GraphQLError("JWT expired", {
