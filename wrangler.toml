@@ -4,3 +4,5 @@ account_id = "efc35ec7d6bd9832f01dcd290ace5e38"
 workers_dev = true
 main = "src/index.ts"
 compatibility_flags = ["streams_enable_constructors"]
+[vars]
+ADMIN_API="https://benko-services.53.skillstery.com/graphql"

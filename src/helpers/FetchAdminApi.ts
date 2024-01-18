@@ -15,15 +15,10 @@ interface GraphQLContext {
  * @param variables - Optional GraphQL variables.
  * @returns The JSON response from the API.
  */
-export const fetchAdminApi = async (
-  query: string,
-  tenantId: string,
-  authorization: string,
-  variables: object = {}
-): Promise<Object> => {
-  const response = await fetch(
-    "https://benko-services.53.skillstery.com/graphql",
-    {
+export const fetchAdminApi =
+  (tenantId: string, authorization: string) =>
+  async (query: string, variables: object = {}): Promise<Object> => {
+    const response = await fetch(globalThis.ADMIN_API, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -31,8 +26,7 @@ export const fetchAdminApi = async (
         Authorization: authorization,
       },
       body: JSON.stringify({ query, variables }),
-    }
-  );
+    });
 
-  return response.json();
-};
+    return response.json();
+  };
