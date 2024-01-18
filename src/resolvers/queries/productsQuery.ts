@@ -19,6 +19,9 @@ interface GetProductByStudentIdResponse {
       };
     };
   };
+  errors?: Array<{
+    message: string;
+  }>;
 }
 
 export const productsQuery = async (
@@ -42,7 +45,7 @@ export const productsQuery = async (
       }
     }
   `)) as GetProductByStudentIdResponse;
-
+  console.log(apiResponse.errors[0].message);
   if (apiResponse.message === "jwt expired") {
     throw new GraphQLError("JWT expired", {
       extensions: {
@@ -51,7 +54,12 @@ export const productsQuery = async (
     });
   }
 
-  if (apiResponse.message === "You don't have permission") {
+  if (
+    apiResponse.errors &&
+    apiResponse.errors.some(
+      (e) => e.message === "Cannot read properties of undefined (reading 'id')"
+    )
+  ) {
     throw new GraphQLError("Access denied: You don't have permission", {
       extensions: {
         code: "UNAUTHORIZED",
